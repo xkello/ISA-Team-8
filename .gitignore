@@ -12,6 +12,9 @@ wheels/
 # My custom files
 notes.txt
 get_categories.ipynb
+ollama_test.ipynb
+request_test.ipynb
+
 
 # Data
 original_data/*/*.pdf
