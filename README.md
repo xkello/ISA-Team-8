@@ -94,3 +94,22 @@ Language model → reasoning + explanation
 
 They do different jobs and do not talk to each other directly.
 The API server coordinates both.
+
+---
+
+## Hybrid Recommender Notebook
+
+A full one-notebook pipeline is available at `hybrid_recommender.ipynb`.
+
+It implements:
+- city-scoped restaurant filtering (default: Philadelphia)
+- collaborative filtering (SVD-based)
+- content-based filtering from categories
+- per-user model selection (CF vs CBF)
+- evaluation metrics (`Precision@K`, `Recall@K`, `HitRate@K`, `NDCG@K`, `MAP@K`, `Coverage@K`)
+
+Dataset location expected by the notebook:
+- `original_data/yelp_json/yelp_academic_dataset_business.json`
+- `original_data/yelp_json/yelp_academic_dataset_review.json`
+
+Run the notebook with Jupyter in this project environment and execute cells top-to-bottom.

@@ -20,6 +20,7 @@ test_review_text.ipynb
 # Data
 original_data/*/*.pdf
 original_data/*/*.json
+original_data/*/*.csv
 custom_data/number_of_friends.csv
 custom_data/review_for_vis.csv
 custom_data/review_no_text.json
