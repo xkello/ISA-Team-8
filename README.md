@@ -1,5 +1,11 @@
 Additional data (post-processed data) can be found [on this google drive](https://drive.google.com/drive/folders/1SAjOsitNoxZyHHl7nFBSpGM-w9Vl6Iaz?usp=drive_link).
 
+## EDA notebooks
+- EDA_basic.ipynb = EDA for the entire dataset and all businesses
+- EDA_restaurant.ipynb = EDA for our selected subset (restaurants)
+
+Specific instructions for running the EDA notebooks are written at the beginning of each of the notebooks.
+
 ## LLM Integration (Ollama)
 
 We run local LLM models on the server using Ollama.

@@ -16,7 +16,7 @@ ollama_test.ipynb
 request_test.ipynb
 business_attributes.ipynb
 test_review_text.ipynb
-EDA_restaurant_col.ipynb
+html_notebooks/
 
 # Data
 original_data/*/*.pdf
