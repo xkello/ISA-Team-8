@@ -16,6 +16,7 @@ dependencies = [
     "seaborn>=0.13.2",
     "surprise>=0.1",
     "tensorflow>=2.21.0",
+    "numpy>=2.0",
     "wandb>=0.26.0",
     "xmltojson>=2.0.3",
 ]
