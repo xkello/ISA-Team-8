@@ -31,6 +31,7 @@ custom_data/user_for_vis.csv
 custom_data/user_no_friends.json
 custom_data/business_attributes_all_values.txt
 custom_data/merged.csv
+custom_data/merged_2.csv
 custom_data/*.npy
 
 # Credentials
