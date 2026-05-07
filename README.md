@@ -117,3 +117,29 @@ Dataset location expected by the notebook:
 - `original_data/yelp_json/yelp_academic_dataset_review.json`
 
 Run the notebook with Jupyter in this project environment and execute cells top-to-bottom.
+
+## Docker Web Demo
+
+A presentation-ready web demo is available in `web-demo/`.
+
+It serves recommendations from LSTM, Naive Bayes, and Hybrid models for a selected user.
+
+To export real trained models from notebooks first:
+
+```powershell
+python web-demo/scripts/patch_notebooks_for_export.py
+```
+
+Then run `lstm.ipynb` and `hybrid_recommender.ipynb` fully and execute their final export cells.
+Model files are saved in `web-demo/artifacts/notebook_exports/`.
+
+Run from repository root:
+
+```powershell
+docker compose up --build
+```
+
+Then open `http://localhost:8000`.
+
+More details: `web-demo/README.md`
+

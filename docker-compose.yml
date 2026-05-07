@@ -1,0 +1,10 @@
+services:
+  recommender-demo:
+    build:
+      context: .
+      dockerfile: web-demo/backend/Dockerfile
+    container_name: isa-recommender-demo
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+

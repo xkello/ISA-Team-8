@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ISA Recommender Demo</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="container">
+    <section class="controls panel">
+      <div class="control-row">
+        <label for="userIdInput">User ID</label>
+        <input id="userIdInput" placeholder="Enter user_id" />
+        <label for="minReviewsInput">Min reviews</label>
+        <input id="minReviewsInput" type="number" min="0" step="1" placeholder="Optional" />
+        <button id="randomBtn">Random user</button>
+        <button id="confirmBtn">Confirm</button>
+      </div>
+      <div id="status" class="status"></div>
+    </section>
+
+    <section class="dashboard-grid">
+      <div class="left-stack">
+        <section id="userPanel" class="user-panel panel" hidden></section>
+        <section id="qualityPanel" class="quality-panel panel"></section>
+      </div>
+
+      <section class="carousel-panel panel">
+        <div class="carousel-toolbar">
+          <button id="modelPrevBtn" class="nav-btn" aria-label="Previous model">&larr;</button>
+          <div class="carousel-meta">
+            <div id="modelTitle" class="carousel-title">Model gallery</div>
+            <div id="modelPosition" class="small">Select a user to load model outputs.</div>
+            <div id="modelDots" class="model-dots" aria-label="Model selector"></div>
+          </div>
+          <button id="modelNextBtn" class="nav-btn" aria-label="Next model">&rarr;</button>
+        </div>
+        <div id="modelCardHost" class="model-card-host"></div>
+      </section>
+    </section>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
+
+

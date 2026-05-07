@@ -40,3 +40,9 @@ credentials.ini
 # WandB
 wandb/
 tea_debug.log
+
+# Generated artifacts
+web-demo/artifacts/
+
+# IDE
+.idea/
