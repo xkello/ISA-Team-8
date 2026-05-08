@@ -18,6 +18,7 @@ FRONTEND_DIR = BASE_DIR / "frontend"
 
 class RecommendRequest(BaseModel):
     user_id: str
+    desired_category: str
 
 
 app = FastAPI(title="ISA Recommender Demo")
@@ -65,7 +66,10 @@ def load_artifacts() -> Dict:
     }
 
 
+
 ART = load_artifacts()
+# print(ART["catalog"])
+# print(type(ART["catalog"]))
 
 
 @app.get("/api/health")
@@ -99,11 +103,14 @@ def random_user(min_reviews: int | None = None):
         )
         >= min_reviews
     ]
+    print(eligible_users)
     if not eligible_users:
         raise HTTPException(
             status_code=404,
             detail=f"No users found with at least {min_reviews} reviews",
         )
+    selected_user = random.choice(eligible_users)
+    print(selected_user)
     return {
         "user_id": random.choice(eligible_users),
         "min_reviews": min_reviews,
@@ -114,10 +121,12 @@ def random_user(min_reviews: int | None = None):
 @app.post("/api/recommend")
 def recommend(payload: RecommendRequest):
     user_id = payload.user_id
+    desired_category = payload.desired_category
     if user_id not in ART["users"]:
         raise HTTPException(status_code=404, detail=f"Unknown user_id: {user_id}")
 
     out = {"user_id": user_id, "user_info": ART.get("user_info", {}).get(user_id, {}), "models": {}}
+    print(out)
     for model_key in ("lstm", "naive_bayes", "hybrid"):
         user_recs = ART["models"][model_key].get(user_id, [])
         rows: List[dict] = []
@@ -134,17 +143,23 @@ def recommend(payload: RecommendRequest):
                     "last_review_date": "",
                 },
             )
-            rows.append(
-                {
-                    "business_id": bid,
-                    "score": rec.get("score"),
-                    "name": meta.get("name"),
-                    "categories": meta.get("categories"),
-                    "rating": meta.get("rating"),
-                    "last_review": meta.get("last_review"),
-                    "last_review_date": meta.get("last_review_date"),
-                }
-            )
+
+            categories = meta.get("categories")
+            print(categories)
+            print(desired_category)
+
+            if desired_category in categories:
+                rows.append(
+                    {
+                        "business_id": bid,
+                        "score": rec.get("score"),
+                        "name": meta.get("name"),
+                        "categories": meta.get("categories"),
+                        "rating": meta.get("rating"),
+                        "last_review": meta.get("last_review"),
+                        "last_review_date": meta.get("last_review_date"),
+                    }
+                )
 
         out["models"][model_key] = {
             "metric": ART["metrics"].get(model_key, {}),

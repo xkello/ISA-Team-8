@@ -1,6 +1,7 @@
 const statusEl = document.getElementById("status");
 const inputEl = document.getElementById("userIdInput");
 const minReviewsEl = document.getElementById("minReviewsInput");
+const categoryEl = document.getElementById("categoryInput");
 const randomBtn = document.getElementById("randomBtn");
 const confirmBtn = document.getElementById("confirmBtn");
 const userPanelEl = document.getElementById("userPanel");
@@ -11,6 +12,30 @@ const modelPositionEl = document.getElementById("modelPosition");
 const modelDotsEl = document.getElementById("modelDots");
 const modelPrevBtn = document.getElementById("modelPrevBtn");
 const modelNextBtn = document.getElementById("modelNextBtn");
+
+categoriesResponse = fetch("./possible_categories.json")
+  .then(categoriesResponse => {
+    if (!categoriesResponse.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return categoriesResponse.json(); 
+  })
+  .then(categories => {
+    console.log("Categories Array:", categories);
+    
+    const select = document.getElementById('categoryInput');
+    select.innerHTML = '<option value="">-- Select --</option>';
+
+    categories.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat;
+      option.textContent = cat;
+      select.appendChild(option);
+    });
+  })
+  .catch(error => {
+    console.error("Error fetching or parsing JSON:", error);
+  });
 
 const MODEL_KEYS = ["lstm", "naive_bayes", "hybrid"];
 const MODEL_TITLES = {
@@ -180,6 +205,7 @@ function shiftModel(step) {
 
 async function fetchRandomUser() {
   const rawMinReviews = minReviewsEl.value.trim();
+  const desiredCategory = categoryEl.value.trim();
   let endpoint = "/api/users/random";
   if (rawMinReviews !== "") {
     const minReviews = Number(rawMinReviews);
@@ -188,6 +214,7 @@ async function fetchRandomUser() {
     }
     endpoint = `/api/users/random?min_reviews=${encodeURIComponent(minReviews)}`;
   }
+
 
   setStatus("Picking random user...");
   const res = await fetch(endpoint);
@@ -198,7 +225,8 @@ async function fetchRandomUser() {
   const body = await res.json();
   inputEl.value = body.user_id || "";
   if (rawMinReviews !== "") {
-    setStatus(`Random user selected: ${inputEl.value} (min reviews: ${rawMinReviews})`);
+    //setStatus(`Random user selected: ${inputEl.value} (min reviews: ${rawMinReviews})`);
+    setStatus(`Random user selected: ${inputEl.value} (min reviews: ${rawMinReviews}) (desired category: ${desiredCategory})`);
   } else {
     setStatus(`Random user selected: ${inputEl.value}`);
   }
@@ -206,6 +234,7 @@ async function fetchRandomUser() {
 
 async function fetchRecommendations() {
   const userId = inputEl.value.trim();
+  const desiredCategory = categoryEl.value.trim();
   if (!userId) {
     setStatus("Enter a user_id first.");
     return;
@@ -215,7 +244,10 @@ async function fetchRecommendations() {
   const res = await fetch("/api/recommend", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id: userId }),
+    body: JSON.stringify({
+      user_id: userId,
+      desired_category: desiredCategory
+    }),
   });
   if (!res.ok) {
     const errText = await res.text();

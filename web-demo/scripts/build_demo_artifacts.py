@@ -15,6 +15,7 @@ MERGED_PATH = ROOT / "custom_data" / "merged_2.csv"
 BUSINESS_JSON_PATH = ROOT / "original_data" / "yelp_json" / "yelp_academic_dataset_business.json"
 REVIEW_JSON_PATH = ROOT / "original_data" / "yelp_json" / "yelp_academic_dataset_review.json"
 ARTIFACTS_DIR = ROOT / "web-demo" / "artifacts"
+FRONTEND_DIR = ROOT / "web-demo" / "frontend"
 
 MAX_USERS = 1200
 TOP_K = 10
@@ -236,6 +237,7 @@ def main() -> None:
     businesses = {}
     needed_bids = set(all_rec_bids) | set(user_recent_bids) | set(user_history_bids)
     business_categories: Dict[str, List[str]] = {}
+    unique_categories = set()
     with BUSINESS_JSON_PATH.open("r", encoding="utf-8") as f:
         for line in f:
             obj = json.loads(line)
@@ -243,6 +245,7 @@ def main() -> None:
             if bid not in needed_bids:
                 continue
             cats = _parse_categories(obj.get("categories"))
+            unique_categories = unique_categories | set(cats)
             businesses[bid] = {
                 "name": obj.get("name", "Unknown"),
                 "categories": obj.get("categories") or "",
@@ -330,17 +333,11 @@ def main() -> None:
     (ARTIFACTS_DIR / "recs_lstm.json").write_text(json.dumps(serialize_recs(recs_lstm), indent=2), encoding="utf-8")
     (ARTIFACTS_DIR / "recs_naive_bayes.json").write_text(json.dumps(serialize_recs(recs_nb), indent=2), encoding="utf-8")
     (ARTIFACTS_DIR / "recs_hybrid.json").write_text(json.dumps(serialize_recs(recs_hybrid), indent=2), encoding="utf-8")
+    (FRONTEND_DIR / "possible_categories.json").write_text(json.dumps(sorted(list(unique_categories))), encoding="utf-8")
 
-    print(f"Artifacts written to: {ARTIFACTS_DIR}")
+    print(f"Artifacts written to: {ARTIFACTS_DIR} and {FRONTEND_DIR}")
     print(f"Users: {len(users)} | Catalog items used: {len(catalog)}")
 
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
