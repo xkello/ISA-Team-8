@@ -250,6 +250,9 @@ def main() -> None:
                 "name": obj.get("name", "Unknown"),
                 "categories": obj.get("categories") or "",
                 "stars": float(obj.get("stars") or 0.0),
+                "latitude": float(obj.get("latitude")),
+                "longitude": float(obj.get("longitude")),
+                "address": obj.get("address")
             }
             business_categories[bid] = cats
 
@@ -293,6 +296,9 @@ def main() -> None:
         catalog[bid] = {
             "business_id": bid,
             "name": meta["name"],
+            "latitude": meta["latitude"],
+            "longitude": meta["longitude"],
+            "address": meta["address"],
             "categories": meta["categories"],
             "rating": meta["stars"],
             "last_review_date": review_entry[0],

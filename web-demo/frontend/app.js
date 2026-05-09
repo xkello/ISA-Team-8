@@ -12,6 +12,15 @@ const modelPositionEl = document.getElementById("modelPosition");
 const modelDotsEl = document.getElementById("modelDots");
 const modelPrevBtn = document.getElementById("modelPrevBtn");
 const modelNextBtn = document.getElementById("modelNextBtn");
+const mapEl = document.getElementById("map");
+
+// map centered on Philadelphia
+const map = L.map('map').setView([39.9528, -75.1636], 13);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+let allMapMarkers = [];
 
 categoriesResponse = fetch("./possible_categories.json")
   .then(categoriesResponse => {
@@ -21,7 +30,6 @@ categoriesResponse = fetch("./possible_categories.json")
     return categoriesResponse.json(); 
   })
   .then(categories => {
-    console.log("Categories Array:", categories);
     
     const select = document.getElementById('categoryInput');
     select.innerHTML = '<option value="">-- Select --</option>';
@@ -160,6 +168,56 @@ function renderModel(modelKey, data) {
       `).join("")}
     </div>
   `;
+
+  // when recommendation div is clicked the restaurant pops-up on the map
+  const recoScroll = card.querySelector('.reco-scroll');
+  console.log(recoScroll);
+  if (recoScroll) {
+    recoScroll.addEventListener('click', (e) => {
+      const row = e.target.closest('.reco-row');
+      if (!row || row.classList.contains('header')) return;
+      const cells = row.querySelectorAll('div');
+      const name = (cells[0] && cells[0].textContent) || '';
+      allMapMarkers.forEach(
+        marker => {
+          if (marker["name"] === name){
+            marker["actualMarker"].openPopup();
+          }
+      });
+    });
+  }
+
+  allMapMarkers.forEach(
+    marker => {
+      marker["actualMarker"].remove();
+  });
+
+  allMapMarkers = [];
+
+  var latitudeSum = 0;
+  var longitudeSum = 0;
+  recs.forEach(rec => {
+    latitudeSum += rec.latitude;
+    longitudeSum += rec.longitude;
+    var newMarkerObject = {
+      "actualMarker": L.marker([rec.latitude, rec.longitude]),
+      "name": rec.name
+    };
+    newMarkerObject["actualMarker"].addTo(map)
+    .bindPopup(`
+      <b>${rec.name || "Unknown"} (${(rec.rating ?? 0).toFixed(1)}★)</b>
+      <p>${rec.address || "Unknown address"}</p>
+      <hr>
+      <p>${rec.categories || ""}</p>
+    `);
+
+    allMapMarkers.push(newMarkerObject);
+  });
+
+  // center the map
+  if (recs.length > 0){
+    map.setView([latitudeSum / recs.length, longitudeSum / recs.length], 13);
+  }
   return card;
 }
 

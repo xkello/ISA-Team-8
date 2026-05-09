@@ -7,6 +7,14 @@
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
+  <!--MAP VISUALISATION-->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""></script>
+  
   <div class="container">
     <section class="controls panel">
       <div class="control-row">
@@ -43,38 +51,12 @@
         <div id="modelCardHost" class="model-card-host"></div>
       </section>
     </section>
+    <div id="map-wrapper">
+      <div id="map"></div>
+    </div>
   </div>
 
   <script src="./app.js"></script>
-  <!--
-  <script> // script for populating categories dropdown
-
-    response = fetch("./possible_categories.json")
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json(); 
-      })
-      .then(categories => {
-        console.log("Categories Array:", categories);
-        
-        const select = document.getElementById('categoryInput');
-        select.innerHTML = '<option value="">-- Select --</option>';
-
-        categories.forEach(cat => {
-          const option = document.createElement('option');
-          option.value = cat;
-          option.textContent = cat;
-          select.appendChild(option);
-        });
-      })
-      .catch(error => {
-        console.error("Error fetching or parsing JSON:", error);
-      });
-
-  </script>
-  -->
 </body>
 </html>
 

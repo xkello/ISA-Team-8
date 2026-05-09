@@ -280,6 +280,22 @@ button:hover {
   color: var(--text-soft);
 }
 
+#map-wrapper {
+  border: 1px solid var(--line-soft);
+  gap: 8px;
+  border-radius: 8px;
+  margin: 10px;
+  padding: 10px;
+}
+
+#map {
+  height: 400px;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+}
+
 @media (max-width: 1180px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
