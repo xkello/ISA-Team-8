@@ -13,6 +13,10 @@ const modelDotsEl = document.getElementById("modelDots");
 const modelPrevBtn = document.getElementById("modelPrevBtn");
 const modelNextBtn = document.getElementById("modelNextBtn");
 const mapEl = document.getElementById("map");
+const EUAIModal = document.getElementById("EUAIModal");
+const EUAIBtn = document.getElementById("EUAIBtn");
+const EUAIModalCloseSpan = document.getElementById("EUAIModalCloseSpan");
+
 
 // map centered on Philadelphia
 const map = L.map('map').setView([39.9528, -75.1636], 13);
@@ -374,6 +378,21 @@ confirmBtn.addEventListener("click", async () => {
     await fetchRecommendations();
   } catch (e) {
     setStatus(String(e));
+  }
+});
+
+EUAIBtn.addEventListener("click", function () { 
+  EUAIModal.style.display = "block";
+});
+
+EUAIModalCloseSpan.addEventListener("click", function() {
+  EUAIModal.style.display = "none";
+});
+
+window.addEventListener("click", (event) => {
+  if (event.target == EUAIModal) {
+    console.log("equal");
+    EUAIModal.style.display = "none";
   }
 });
 
