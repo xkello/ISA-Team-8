@@ -15,7 +15,6 @@ Make sure the following are installed on your machine:
 | [Python](https://www.python.org/downloads/) | ≥ 3.12 | Required for notebooks and scripts |
 | [uv](https://docs.astral.sh/uv/getting-started/installation/) | latest | Python package manager used by this project |
 | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | latest | For `docker compose up` |
-| [Ollama](https://ollama.com/download) | latest | Local LLM inference server (only needed for notebook LLM cells) |
 
 ---
 
@@ -127,100 +126,6 @@ Then open **http://localhost:8000** in your browser.
 
 Specific instructions for running the EDA notebooks are written at the beginning of each of the notebooks.
 
-## LLM Integration (Ollama)
-
-We run local LLM models on the server using Ollama.
-
-### Models used
-
-- gemma3:4b  
-  General language model used for reasoning and decision making.
-
-- qwen3-embedding:4b  
-  Embedding model used to convert text into numeric vectors for similarity
-  comparisons.
-
-Both models run locally on the same server (CPU, no GPU required).
-
----
-
-## How the models are used
-
-The API server decides which model to use depending on the task.
-
-### 1. Embedding model (qwen3-embedding:4b)
-
-Used when we need numeric representations of text.
-
-Typical uses:
-- comparing restaurant descriptions
-- comparing user review text to restaurant profiles
-- semantic similarity
-- clustering
-- retrieval tasks
-
-Flow:
-
-
-API → Ollama embeddings endpoint → qwen3-embedding model → vectors → API
-
-
-The server calls the embedding model when it needs vectors, not text output.
-
----
-
-### 2. Language model (gemma3:4b)
-
-Used when we need reasoning or text generation.
-
-Typical uses:
-- analyzing user preferences
-- ranking candidate restaurants
-- explaining recommendations
-- summarizing reviews
-- natural language responses
-
-Flow:
-
-
-API → Ollama generate endpoint → gemma3 model → text response → API
-
-
-The server calls this model when it needs reasoning or written output.
-
----
-
-## How both models work together
-
-Example recommendation flow with both models:
-
-1. User sends request
-2. API builds restaurant candidate list
-3. API extracts user preference text
-4. Embedding model converts:
-   - user preferences → vectors
-   - restaurant descriptions → vectors
-5. API computes similarity scores
-6. Language model receives:
-   - user preferences
-   - top candidates
-   - instructions
-7. Language model:
-   - refines ranking
-   - generates explanation
-8. API returns final JSON
-
-So:
-
-
-Embeddings → similarity math
-Language model → reasoning + explanation
-
-
-They do different jobs and do not talk to each other directly.
-The API server coordinates both.
-
----
 
 ## Hybrid Recommender Notebook
 
@@ -238,4 +143,73 @@ Dataset location expected by the notebook:
 - `original_data/yelp_json/yelp_academic_dataset_review.json`
 
 Run the notebook with Jupyter in this project environment and execute cells top-to-bottom.
+
+---
+
+## Model Notes
+
+### 1. LSTM (Sequential recommender)
+
+**What it does:** predicts the next restaurant a user will enjoy based on their ordered visit history.
+
+**Why LSTM:** visit sequences have temporal structure — what someone liked last month matters more than what they liked two years ago. An LSTM can learn that recency matters without you manually engineering it.
+
+**Training data:** the post-processed `custom_data/merged_2.csv` file, filtered to reviews ≥ 4 stars only (average rating in the dataset is 3.86, so we focus on what people actually liked). Users with fewer than 2 reviews are excluded because you need at least an input + a target.
+
+**Sequence config:**
+- Sequence length: **5** visits per training sample
+- Users with fewer than 5 visits get zero-padded sequences (Keras masking layer handles this)
+- 80/20 train/test split (random seed 28)
+
+**Architecture:**
+- Restaurant embedding: dim **64**
+- User embedding: dim **28**
+- LSTM: **112 units** with LayerNorm
+- Output: softmax over all restaurants in the training set
+
+**Training config:** Adam, lr `1e-5`, **85 epochs**, batch size **1024**, loss: sparse categorical cross-entropy.
+
+**Metrics tracked:** accuracy, top-5 accuracy, top-10 accuracy (train + test per epoch).
+
+---
+
+### 2. Naive Bayes (Baseline)
+
+**What it does:** predicts the next restaurant from unordered visit history — it treats the past sequence as a bag of restaurants, not an ordered timeline.
+
+**Why NB:** it is a fast, interpretable baseline. Running it alongside LSTM shows how much the temporal ordering actually matters. It also degrades gracefully on sparse users.
+
+**Training data:** same train/test split as LSTM so metrics are directly comparable.
+
+**Features:** sparse restaurant-count vectors (which restaurants appear in the user's history, how many times). Optionally includes mean attribute values per sequence window.
+
+**Key hyperparameter:** Laplace smoothing alpha, selected by sweeping `[0.05, 0.1, 0.3, 0.5, 1.0]` and picking the run with the best `test_top_10_accuracy`.
+
+**Training:** 12 epochs of mini-batch partial fitting (batch size 8192), sampling 20% of training rows per epoch to get curves without full re-scans.
+
+---
+
+### 3. Hybrid Recommender (CF + CBF)
+
+**What it does:** blends collaborative filtering (SVD) and content-based filtering (category vectors) into a single ranked list of 10 restaurants per user.
+
+**Why hybrid:** CF alone struggles with sparse users (not many reviews) and cold-start items (new restaurants). CBF alone ignores what similar users liked. The hybrid covers both gaps.
+
+**Scope:** city-scoped to **Philadelphia, PA** for computational tractability. Full-dataset runs are possible by changing `TARGET_CITY` and `SAMPLE_USER_FRAC = 1.0`.
+
+**Training data size (default run):**
+- 20% user sample (`SAMPLE_USER_FRAC = 0.20`) for fast iteration
+- Minimum 3 reviews per user, minimum 5 reviews per restaurant (interaction denoising)
+- Only reviews ≥ 4 stars count as positive signal (`LIKE_STARS = 4.0`)
+- Temporal split: leave-last-two per user → train / val / test
+
+**CF component:** `TruncatedSVD` on the sparse user-item rating matrix, up to **64 latent dimensions** (capped at matrix size for numerical stability).
+
+**CBF component:** multi-label one-hot encoding of restaurant categories + cosine similarity between user's weighted category profile and each restaurant's category vector.
+
+**Hybrid blend:** `hybrid_score = 0.9 × CF_norm + 0.1 × CBF_norm` (CF-dominant by default; `HYBRID_ALPHA = 0.9`).
+
+**Cold-start fallback:** users with 0 training interactions get a popularity-based ranking (average star rating across known restaurants ≥ 4.0).
+
+**Evaluation metrics:** `Precision@10`, `Recall@10`, `HitRate@10`, `NDCG@10`, `MAP@10`, `Coverage@10`.
 
