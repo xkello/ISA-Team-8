@@ -7,8 +7,9 @@ This folder contains a lightweight web app that presents recommendations from:
 
 The app flow is:
 1. Select `user_id` manually or with **Random user**
-2. Click **Confirm**
-3. View 10 recommendations from each model in separate rows
+2. Optionally use **Min reviews** or **Cold start user (0 reviews)** for random selection
+3. Click **Confirm**
+4. View 10 recommendations from each model in separate rows
 
 Each recommendation card shows:
 - restaurant name
@@ -60,6 +61,7 @@ python web-demo/scripts/build_demo_artifacts.py
 
 This regenerates:
 - `web-demo/artifacts/users.json`
+- `web-demo/artifacts/cold_start_users.json`
 - `web-demo/artifacts/catalog.json`
 - `web-demo/artifacts/metrics.json`
 - `web-demo/artifacts/recs_lstm.json`

@@ -18,16 +18,55 @@
   <div class="container">
     <section class="controls panel">
       <div class="control-row">
-        <label for="userIdInput">User ID</label>
-        <input id="userIdInput" placeholder="Enter user_id" />
-        <label for="minReviewsInput">Min reviews</label>
-        <input id="minReviewsInput" type="number" min="0" step="1" placeholder="Optional" />
-        <label for="categoryInput">Desired Category</label>
-        <select id="categoryInput">
-          <option value="">-- Select a category --</option>
-        </select>
-        <button id="randomBtn">Random user</button>
-        <button id="confirmBtn">Confirm</button>
+        <div class="main-controls">
+          <div class="control-field grow-field">
+            <label for="userIdInput">User ID</label>
+            <input id="userIdInput" placeholder="Enter user_id" />
+          </div>
+          <div class="control-actions">
+            <button id="randomBtn">Random user</button>
+            <button id="confirmBtn">Confirm</button>
+          </div>
+        </div>
+        <div class="filter-column">
+          <label id="coldStartGroup" class="switch-row" for="coldStartToggle">
+            <span>Cold start user (0 reviews)</span>
+            <span class="switch">
+              <input id="coldStartToggle" type="checkbox" />
+              <span class="slider-knob" aria-hidden="true"></span>
+            </span>
+          </label>
+
+          <div class="filter-divider"><span>or filter users by</span></div>
+
+          <div id="minReviewsGroup" class="control-field filter-field">
+            <label for="minReviewsInput">Min reviews</label>
+            <input id="minReviewsInput" type="number" min="0" step="1" placeholder="e.g. 5" />
+          </div>
+
+          <div id="posRatioGroup" class="control-field filter-field">
+            <div class="slider-label-row">
+              <label for="posRatioInput">Min positive ratio</label>
+              <span id="posRatioValue" class="slider-value">any</span>
+            </div>
+            <input id="posRatioInput" type="range" min="0" max="100" step="1" value="0" />
+          </div>
+
+          <div id="avgRatingGroup" class="control-field filter-field">
+            <div class="slider-label-row">
+              <label for="avgRatingInput">Min avg rating</label>
+              <span id="avgRatingValue" class="slider-value">any</span>
+            </div>
+            <input id="avgRatingInput" type="range" min="1" max="5" step="0.1" value="1" />
+          </div>
+
+          <div id="thirdReviewGroup" class="control-field filter-field">
+            <label for="thirdReviewInput">3rd review before date</label>
+            <input id="thirdReviewInput" type="date" />
+          </div>
+
+          <button id="clearFiltersBtn" class="clear-btn">Clear filters</button>
+        </div>
       </div>
       <div id="status" class="status"></div>
     </section>
@@ -54,8 +93,6 @@
     <div id="map-wrapper">
       <div id="map"></div>
     </div>
-
-    <button id="EUAIBtn">Open Modal</button>
     <div id="EUAIModal">
       <div id="modal-content">
         <span id="EUAIModalCloseSpan">&times;</span>

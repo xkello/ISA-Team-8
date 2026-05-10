@@ -1,5 +1,126 @@
 Additional data (post-processed data) can be found [on this google drive](https://drive.google.com/drive/folders/1SAjOsitNoxZyHHl7nFBSpGM-w9Vl6Iaz?usp=drive_link).
 
+---
+
+## User Manual — Running the Demo Locally
+
+Follow these steps **in order** before running `docker compose up`.
+
+### 1. Prerequisites
+
+Make sure the following are installed on your machine:
+
+| Tool | Version | Notes |
+|---|---|---|
+| [Python](https://www.python.org/downloads/) | ≥ 3.12 | Required for notebooks and scripts |
+| [uv](https://docs.astral.sh/uv/getting-started/installation/) | latest | Python package manager used by this project |
+| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | latest | For `docker compose up` |
+| [Ollama](https://ollama.com/download) | latest | Local LLM inference server (only needed for notebook LLM cells) |
+
+---
+
+### 2. Clone the repository
+
+```powershell
+git clone <repo-url>
+cd ISA-Team-8
+```
+
+---
+
+### 3. Install Python dependencies
+
+This project uses `uv`. Run from the repo root:
+
+```powershell
+uv sync
+```
+
+This creates a virtual environment and installs everything from `pyproject.toml` (TensorFlow, Keras, scikit-learn, pandas, etc.).
+
+> **Alternative (plain pip):** `pip install -r web-demo/backend/requirements.txt` is enough if you only want to run the web demo without the notebooks.
+
+---
+
+### 4. Place the Yelp dataset
+
+Download the Yelp Open Dataset and place the JSON files at:
+
+```
+original_data/yelp_json/yelp_academic_dataset_business.json
+original_data/yelp_json/yelp_academic_dataset_review.json
+original_data/yelp_json/yelp_academic_dataset_user.json
+original_data/yelp_json/yelp_academic_dataset_tip.json
+original_data/yelp_json/yelp_academic_dataset_checkin.json
+```
+
+> The additional post-processed CSVs can be downloaded from the [Google Drive](https://drive.google.com/drive/folders/1SAjOsitNoxZyHHl7nFBSpGM-w9Vl6Iaz?usp=drive_link) and placed under `custom_data/`.
+
+---
+
+### 5. Configure credentials
+
+Open `credentials.ini` and fill in your [Weights & Biases](https://wandb.ai) API key:
+
+```ini
+[WandB]
+api_key = <your_wandb_api_key>
+```
+
+> WandB is only required if you run experiment-tracking cells in the notebooks. You can skip this if you are only running the web demo.
+
+---
+
+### 6. Train models and export artifacts
+
+The web demo reads pre-built artifact files. You need to generate them from the notebooks.
+
+**Step 6a — Patch notebooks with export cells:**
+
+```powershell
+python web-demo/scripts/patch_notebooks_for_export.py
+```
+
+**Step 6b — Run the LSTM notebook:**
+
+Open `lstm.ipynb` in Jupyter, run all cells top-to-bottom, then run the last export cell.
+
+```powershell
+uv run jupyter notebook lstm.ipynb
+```
+
+**Step 6c — Run the Hybrid Recommender notebook:**
+
+Open `hybrid_recommender.ipynb` in Jupyter, run all cells top-to-bottom, then run the last export cell.
+
+```powershell
+uv run jupyter notebook hybrid_recommender.ipynb
+```
+
+Exported files will appear in `web-demo/artifacts/notebook_exports/`.
+
+---
+
+### 7. Build the demo JSON artifacts
+
+```powershell
+python web-demo/scripts/build_demo_artifacts.py
+```
+
+This generates all the JSON files the API reads at runtime under `web-demo/artifacts/`.
+
+---
+
+### 8. Start the demo
+
+```powershell
+docker compose up --build
+```
+
+Then open **http://localhost:8000** in your browser.
+
+---
+
 ## EDA notebooks
 - EDA_basic.ipynb = EDA for the entire dataset and all businesses
 - EDA_restaurant.ipynb = EDA for our selected subset (restaurants)
@@ -117,29 +238,4 @@ Dataset location expected by the notebook:
 - `original_data/yelp_json/yelp_academic_dataset_review.json`
 
 Run the notebook with Jupyter in this project environment and execute cells top-to-bottom.
-
-## Docker Web Demo
-
-A presentation-ready web demo is available in `web-demo/`.
-
-It serves recommendations from LSTM, Naive Bayes, and Hybrid models for a selected user.
-
-To export real trained models from notebooks first:
-
-```powershell
-python web-demo/scripts/patch_notebooks_for_export.py
-```
-
-Then run `lstm.ipynb` and `hybrid_recommender.ipynb` fully and execute their final export cells.
-Model files are saved in `web-demo/artifacts/notebook_exports/`.
-
-Run from repository root:
-
-```powershell
-docker compose up --build
-```
-
-Then open `http://localhost:8000`.
-
-More details: `web-demo/README.md`
 

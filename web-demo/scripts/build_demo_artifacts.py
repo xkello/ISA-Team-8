@@ -4,7 +4,7 @@ import json
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -21,6 +21,7 @@ MAX_USERS = 1200
 TOP_K = 10
 RANDOM_STATE = 28
 TOP_USER_TYPES = 5
+COLD_START_USER_COUNT = 24
 
 GENERIC_RESTAURANT_TYPES = {
     "restaurant",
@@ -140,6 +141,8 @@ def main() -> None:
     popularity = Counter()
     for seq in contexts.values():
         popularity.update(seq)
+    cold_start_top = _topk_from_counter(popularity, seen=set(), top_k=TOP_K)
+    cold_start_users = [f"cold_start_demo_{idx:03d}" for idx in range(1, COLD_START_USER_COUNT + 1)]
 
     # Transition model for LSTM-like behavior.
     transitions: Dict[str, Counter] = defaultdict(Counter)
@@ -222,6 +225,24 @@ def main() -> None:
         hy_counter = Counter({k: 0.6 * lstm_norm.get(k, 0.0) + 0.4 * nb_norm.get(k, 0.0) for k in all_keys})
         hy_top = _topk_from_counter(hy_counter, seen=seen, top_k=TOP_K)
         recs_hybrid[uid] = hy_top
+
+    for uid in cold_start_users:
+        user_info[uid] = {
+            "user_id": uid,
+            "avg_rating": None,
+            "review_count": 0,
+            "review_count_dataset_restaurants": 0,
+            "total_review_count": 0,
+            "unique_restaurants": 0,
+            "positive_review_ratio": None,
+            "top_restaurant_types": [],
+            "recent_visits": [],
+            "profile_note": "Synthetic cold-start demo user with no restaurant history yet.",
+            "is_cold_start": True,
+        }
+        recs_lstm[uid] = cold_start_top
+        recs_nb[uid] = cold_start_top
+        recs_hybrid[uid] = cold_start_top
 
     # Evaluate on last-item holdout for a consistent metric block.
     eval_lstm = _evaluate(recs_lstm, targets)
@@ -333,6 +354,10 @@ def main() -> None:
         }
 
     (ARTIFACTS_DIR / "users.json").write_text(json.dumps({"users": users}, indent=2), encoding="utf-8")
+    (ARTIFACTS_DIR / "cold_start_users.json").write_text(
+        json.dumps({"users": cold_start_users}, indent=2),
+        encoding="utf-8",
+    )
     (ARTIFACTS_DIR / "catalog.json").write_text(json.dumps(catalog, indent=2), encoding="utf-8")
     (ARTIFACTS_DIR / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
     (ARTIFACTS_DIR / "user_info.json").write_text(json.dumps(user_info, indent=2), encoding="utf-8")
@@ -342,7 +367,7 @@ def main() -> None:
     (FRONTEND_DIR / "possible_categories.json").write_text(json.dumps(sorted(list(unique_categories))), encoding="utf-8")
 
     print(f"Artifacts written to: {ARTIFACTS_DIR} and {FRONTEND_DIR}")
-    print(f"Users: {len(users)} | Catalog items used: {len(catalog)}")
+    print(f"Users: {len(users)} | Cold-start demo users: {len(cold_start_users)} | Catalog items used: {len(catalog)}")
 
 
 if __name__ == "__main__":
